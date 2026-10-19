@@ -12,6 +12,18 @@ The objective was to understand how publicly available technical information can
 
 The project emphasizes **evidence-based security analysis**, distinguishing publicly visible information from confirmed vulnerabilities.
 
+## Assessment Workflow
+
+![OSINT Assessment Workflow](assets/osint-workflow.png)
+
+## Reconnaissance Results
+
+![Shodan Findings Dashboard](assets/shodan-findings-dashboard.png)
+
+The chart summarizes indexed service matches observed during passive reconnaissance on October 16, 2026.
+
+Result counts do not represent confirmed vulnerabilities.
+
 ## Objectives
 
 - Identify publicly indexed cloud services and infrastructure.

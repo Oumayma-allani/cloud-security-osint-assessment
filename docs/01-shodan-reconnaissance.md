@@ -1,68 +1,162 @@
-# Cloud Security OSINT Assessment — Shodan Reconnaissance
+# External Attack Surface Reconnaissance with Shodan
 
-> Educational, passive reconnaissance exercise based on *Lab 2: Finding Cloud Vulnerabilities using OSINT Tools*. No direct interaction with third-party services was performed.
+## 1. Overview
 
-## Project scope
+This assessment explores how publicly indexed information can reveal potential security exposures across cloud infrastructure, web applications, network services, and administrative interfaces.
 
-**Objective:** Understand what public search-engine indexing can reveal about cloud services and infrastructure, and distinguish potential exposure from confirmed vulnerability.
+Using **Shodan**, I conducted passive reconnaissance to identify internet-facing services, analyze technology fingerprints, assess potential security risks, and recommend defensive measures.
 
-**Tool:** Shodan (web interface)  
-**Observation date:** 2026-10-16  
-**Method:** Run the nine lab queries, examine indexed result listings and banners, record aggregate counts and technical observations. No direct target connections, login attempts, or downloads.
+The investigation focuses on cloud infrastructure visibility, exposed management interfaces, software supply-chain security, legacy systems, and network service configurations.
 
-**Ethics:** Screenshots and raw third-party identifiers from the academic lab are not published in this repository. Public findings below are aggregated and anonymized. The original course instructions require screenshots to remain confidential.
+## 2. Objectives
 
-## Results
+- Identify publicly indexed cloud services and network infrastructure.
+- Analyze service banners, open ports, HTTP responses, TLS configurations, and software versions.
+- Investigate potential information disclosure and infrastructure security risks.
+- Identify false positives and distinguish observed exposures from confirmed vulnerabilities.
+- Provide actionable security recommendations.
 
-| Search | Topic | Shodan matches | Observations | Verification status |
+## 3. Tools and Methodology
+
+| Parameter | Details |
+|---|---|
+| Tool | Shodan |
+| Assessment type | Passive OSINT reconnaissance |
+| Observation date | October 16, 2026 |
+| Environment | Publicly indexed internet-facing services |
+| Validation approach | Analysis of Shodan result listings and service banners |
+
+The investigation was conducted using targeted Shodan queries to identify specific technologies, cloud providers, operating systems, and network services.
+
+For each search, I examined aggregated results and selected service metadata to identify potential security concerns.
+
+**Scope limitations:** No direct connections to discovered services, authentication attempts, exploitation, or data extraction were performed.
+
+## 4. Reconnaissance Results
+
+| ID | Technology / Service | Indexed Matches | Key Observation | Validation Status |
 |---|---|---:|---|---|
-| Initial | Azure directory listings | 264 | `Index of /` titles; inspected results also showed TLS certificate information despite `ssl:false` | No missing TLS or exposed sensitive file confirmed |
-| (a) | Azure Swagger interfaces | 1,687 | Swagger-related titles; IIS, Kestrel and Uvicorn appeared in visible headers | Public API docs are not necessarily a vulnerability |
-| (b) | Azure `cloudapp.net` | 634,288 | HTTP 200 responses; ports 8081, 8443, 8083 and 8085 prominent | Internet-facing service inventory only; no country filter |
-| (c) | Weave Scope | 1 | Title and favicon search matched one Azure-associated service with HTTP 200 | No authentication or function testing |
-| (d) | Docker Registry | 239 | `Docker-Distribution-Api-Version: registry/2.0` in visible banners; ports 443 and 5000 | No evidence of unauthenticated image read/write |
-| (e) | Jenkins-related search | 1,592 | Visible results included Netdata, Linux Dash and Hoverfly, some with honeypot tags | Possible false positives; Jenkins not confirmed in inspected results |
-| (f) | MikroTik RouterOS 6.45.9 | 6,447 | WinBox banners showed 6.45.9 version strings | Version match does not prove a CVE is exploitable |
-| (g) | FTP successful login banners | 28,369 | Responses included `220`, `230 Login successful.` and some `vsFTPd 3.0.2` identifiers | Login context and file permissions unknown |
-| (h) | Windows 7 RDP | 3,174 | RDP on 3389; one visible result showed Windows 7/Server 2008 R2 NTLM identification and a Windows 7 Professional login screenshot | No unauthorized RDP access or vulnerability confirmed |
+| 01 | Azure Directory Listings | 264 | `Index of /` titles detected; inspected results also displayed TLS certificate information | Unverified |
+| 02 | Azure Swagger Interfaces | 1,687 | Swagger-related pages associated with IIS, Kestrel, and Uvicorn | Potential exposure |
+| 03 | Azure cloudapp.net Services | 634,288 | Large number of indexed cloud services; ports 8081, 8443, 8083, and 8085 prominent | Informational |
+| 04 | Weave Scope | 1 | An Azure-associated service matched the interface title and favicon fingerprint | Unverified |
+| 05 | Docker Registry | 239 | Registry API headers identified; ports 443 and 5000 observed | Unverified |
+| 06 | Jenkins-Related Search | 1,592 | Visible results included Netdata, Linux Dash, and Hoverfly; possible honeypots and false positives | Inconclusive |
+| 07 | MikroTik RouterOS 6.45.9 | 6,447 | WinBox banners contained version 6.45.9 identifiers | Unverified |
+| 08 | FTP Services | 28,369 | FTP banners included `220`, `230 Login successful.`, and some vsFTPd version information | Unverified |
+| 09 | Windows 7 RDP | 3,174 | RDP service metadata included legacy Windows identification and an indexed login-screen image | Requires validation |
 
-Counts are Shodan search matches at the time of observation, **not verified unique hosts or confirmed vulnerabilities**. Different queries may overlap.
+**Note:** These figures represent Shodan search matches at the time of observation, not confirmed vulnerabilities or necessarily unique devices. Results from different searches may overlap.
 
-## Reflection questions
+## 5. Security Analysis
 
-### 1. What information can Shodan reveal?
+### 5.1 Information Disclosure Through Public Reconnaissance
 
-Shodan can expose indexed **public IP addresses, geolocation, hosting organizations, open ports, applications, software versions, HTTP response headers, TLS certificate metadata, operating-system identifiers, and service screenshots**. Examples from this exercise include Azure-associated services, MikroTik RouterOS 6.45.9 banners, Docker Registry API version headers, FTP responses, and Windows RDP metadata. These findings support attack-surface inventory but do not prove a flaw.
+Shodan can reveal several categories of information about internet-facing infrastructure:
 
-### 2. Why are Weave Scope, Docker Registry and Jenkins infrastructure/supply-chain risks?
+- Public IP addresses and network locations
+- Hosting providers and organizations
+- Open ports and exposed services
+- Operating systems and software versions
+- HTTP response headers and service banners
+- TLS certificate metadata
+- Application fingerprints
+- Service screenshots and system identifiers
 
-Weave Scope can provide visibility into multiple containers and services. An improperly protected Docker Registry could reveal proprietary images or, if unauthorized write access existed, undermine deployment artifact integrity. A privileged Jenkins instance may interact with source code, secrets and production deployment workflows. Therefore, misconfiguration of these components can have a broader impact than exposure of one web page. **Our results do not confirm such access**, and the inspected Jenkins-search results included apparent false positives.
+These observations demonstrate how publicly indexed information can help build an external attack-surface inventory.
 
-### 3. Compare a non-TLS Azure service and a Jenkins dashboard.
+While individual metadata elements may appear harmless, their combination can reveal infrastructure technologies and guide further security investigations.
 
-A service genuinely lacking TLS can expose traffic confidentiality and integrity; directory indexing might additionally reveal unintended files. A Jenkins interface permitting unauthorized privileged operations could expose deployment credentials, alter CI/CD processes and affect multiple services, so it could pose greater immediate risk. **This is a conditional comparison:** TLS details were visible in the examined Azure results, while the inspected Jenkins-search results did not establish Jenkins exposure. The course question labels the non-TLS search as dork (a), although `ssl:false` appears in the initial directory-listing query.
+### 5.2 Infrastructure and Software Supply-Chain Risks
 
-### 4. Why search for particular OS or firmware versions?
+The investigation included searches related to Weave Scope, Docker Registry, and Jenkins.
 
-Version fingerprints let defenders correlate externally visible assets with **vendor security advisories, CVEs and threat intelligence**, and prioritize verification or patching. Shodan displayed MikroTik RouterOS 6.45.9 version strings and RDP identification consistent with Windows 7 / Windows Server 2008 R2. Exploitability still depends on accurate identification, specific build/patch state, configuration, prerequisites and mitigations.
+**Weave Scope**
 
-### 5. How should Shodan evidence appear in a penetration-testing report?
+An improperly protected container-monitoring interface could expose information about internal services, containers, processes, or network topology.
 
-Record the query, time, authorized asset identifier, indexed observations, potential impact, limits of the evidence, and defensive recommendations. **Before calling an issue a confirmed vulnerability**, secure authorization and scope, verify asset/service attribution, confirm relevant conditions through approved and minimally intrusive testing, assess mitigating controls, preserve reproducible evidence and assign a justified severity. This educational exercise reports **observations only**, not confirmed vulnerabilities.
+**Docker Registry**
 
-## Defensive recommendations
+A registry with inadequate access controls could potentially expose proprietary container images. If unauthorized modification were possible, deployment artifact integrity could also be affected.
 
-- Maintain an inventory of publicly reachable cloud services and management interfaces.
-- Restrict internal dashboards, registries, RDP and router management to trusted networks or authorized access gateways.
-- Require strong authentication and least privilege for CI/CD systems and software registries.
-- Enforce TLS where appropriate and disable unnecessary directory indexing.
-- Review vendor advisories, unsupported software and patch status.
-- Treat Shodan fingerprints as leads that require authorized validation, especially when honeypot tags or inconsistent filters appear.
+**Jenkins**
 
-## Evidence policy
+A compromised CI/CD platform could affect build pipelines, deployment credentials, and production delivery workflows.
 
-No unredacted Shodan screenshots, third-party IP addresses, user names, hostnames, credentials, or discovered files are included. Raw screenshots are reserved for the confidential academic submission, in line with the lab's instructions. Portfolio screenshots should be recreated with synthetic or fully sanitized information if publication is permitted.
+However, the Jenkins-related search returned apparent false positives, including unrelated dashboards and possible honeypots.
 
-## Next stage
+**Security interpretation:** These platforms represent potentially significant infrastructure or supply-chain risks when misconfigured, but the inspected results did not establish unauthorized access.
 
-Task 2 of the course examines **Shodan-indexed database service listings**. It expressly prohibits connecting to or interacting with third-party MongoDB and Elasticsearch instances.
+### 5.3 Cloud Service Exposure vs. CI/CD Exposure
+
+Two potential security scenarios were considered:
+
+**Scenario A — Unencrypted Azure web service**
+
+A web application genuinely lacking TLS protection could expose transmitted information to interception or modification. Public directory listing could also disclose unintended files.
+
+**Scenario B — Unprotected Jenkins administrative interface**
+
+An improperly secured Jenkins instance with privileged functionality could potentially expose credentials, manipulate build artifacts, or compromise application deployment processes.
+
+An unauthenticated, privileged CI/CD interface could therefore present a broader immediate impact than a basic directory-listing misconfiguration.
+
+This comparison is conditional. The inspected Azure results displayed TLS information despite the `ssl:false` filter, and the Jenkins search did not confirm an accessible Jenkins administrative interface.
+
+### 5.4 Version-Based Reconnaissance and Threat Intelligence
+
+The investigation identified service information associated with:
+
+- MikroTik RouterOS 6.45.9
+- Windows 7 / Windows Server 2008 R2
+- vsFTPd 3.0.2
+
+Software and firmware identification can support defensive vulnerability management by helping analysts correlate technologies with vendor security advisories and CVE records.
+
+A version match alone does not prove exploitability. Additional authorized verification would be necessary to evaluate patch status, affected configurations, vulnerability prerequisites, and applicable mitigations.
+
+### 5.5 False Positives and Search Limitations
+
+One significant observation was the presence of unrelated dashboard technologies in the Jenkins-related search results.
+
+Some results also carried Shodan honeypot indicators.
+
+This demonstrates that passive reconnaissance requires careful interpretation.
+
+A search-engine match is not necessarily proof of the expected technology, and a publicly indexed service is not automatically vulnerable.
+
+Therefore, results were treated as reconnaissance observations requiring further verification rather than confirmed security findings.
+
+## 6. Defensive Recommendations
+
+| Security Area | Recommendation |
+|---|---|
+| Attack Surface Management | Maintain an updated inventory of publicly accessible services |
+| Network Security | Restrict unnecessary internet-facing management ports and services |
+| Authentication | Enforce strong authentication and least-privilege access |
+| CI/CD Security | Protect Jenkins instances, build credentials, and deployment workflows |
+| Container Security | Restrict private registries and apply image integrity controls |
+| Encryption | Enforce TLS where appropriate and review certificate configurations |
+| Vulnerability Management | Monitor vendor advisories, CVEs, and unsupported software |
+| Remote Administration | Protect RDP and router management through trusted networks or secure access gateways |
+| Monitoring | Detect unexpected exposure of administrative interfaces and services |
+
+## 7. Evidence Handling and Assessment Limitations
+
+This assessment relied exclusively on publicly indexed Shodan information.
+
+No direct access to discovered third-party systems, authentication testing, exploitation, or sensitive data retrieval was performed.
+
+Results are based on observations made at a specific point in time and may be affected by outdated indexing, false positives, shared infrastructure, and incomplete technology identification.
+
+Raw service screenshots and identifying third-party information are excluded from this public documentation.
+
+**No confirmed vulnerabilities are claimed.** The findings identify potential exposure patterns and provide a basis for authorized security review.
+
+## 8. Conclusion
+
+This investigation demonstrates how passive OSINT reconnaissance can support external attack-surface analysis, infrastructure fingerprinting, and preliminary security risk identification.
+
+The assessment highlights the importance of identifying exposed services, understanding technology-specific risks, recognizing false positives, and distinguishing publicly visible information from confirmed vulnerabilities.
+
+The findings reinforce the value of proactive attack-surface management, strong access controls, secure CI/CD infrastructure, and continuous vulnerability management.
